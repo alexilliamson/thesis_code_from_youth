@@ -1,0 +1,82 @@
+require 'rubygems'
+require 'watir-webdriver'
+
+lib_path = File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib'))
+$LOAD_PATH.unshift lib_path unless $LOAD_PATH.include?(lib_path)
+
+task :scrape => :environment do
+  
+  class Passage
+    attr_accessor :title, :speaker, :text
+  end
+
+  browser = Watir::Browser.new
+  month = 1
+
+  for date in ('01'..'31')
+    f = File.new("/Users/AlWilly/Documents/Senior Thesis/CongressionalScrape/scraperesults#{month}-#{date}.txt", "w")
+
+    ["H","S","E"].each do 
+      |letter|
+      f.puts("#{letter}\n\n\n\n\n\n")
+      page=2
+      begin 
+        browser.goto "http://www.gpo.gov/fdsys/pkg/CREC-1994-01-#{date}/html/CREC-1994-01-#{date}-pt1-Pg#{letter}#{page}.htm"
+        text0 = browser.text.gsub(/The SPEAKER/, "Mr. SPEAKER")
+        text1 = text0.gsub(/Mrs. /, "Mr. ")
+        text2 = text1.gsub(/Ms. /, "Mr. ")
+        text3 = text2.gsub(/The PRESIDENT pro tempore/, "Mr. PRESIDENT")
+        text4 = text3.gsub(/The PRESIDING OFFICER/, "Mr. OFFICER")
+        text5 = text4.gsub(/The VICE PRESIDENT/, "Mr. VICEP")
+        split1 = text5.split(/Mr. /)
+
+        n = split1.size - 1
+        n.downto(1) do 
+          |i|
+          speaker = split1[i].split[0]
+          if /^(.)(.)[A-Z 0-9 .,:]*$/=~speaker then
+
+          else
+            split1[i-1] = "#{split1[i-1]}" + "#{split1[i]}"
+            split1[i] = nil
+          end
+        end
+
+        split1.compact!
+        n = split1.size - 1
+        1.upto(n) do
+          |i|
+          printable = Passage.new
+          printable.title = browser.title
+
+          if /.$/ =~ split1[i].split[0] then
+            printable.speaker = split1[i].split[0].chomp('.')
+          elsif /,$/ =~ split1[i].split[0] then
+            printable.speaker = split1[i].split[0].chomp(',')
+          elsif /:$/ =~ split1[i].split[0] then
+            printable.speaker = split1[i].split[0].chomp(':')
+          else
+            printable.speaker = split1[i].split[0]
+          end
+
+          noname = split1[i].split
+          noname.delete_at(0)
+          noname_con = ""
+          s = noname.size - 1
+          0.upto(s) do
+            |i|
+            noname_con = "#{noname_con} " + "#{noname[i]}"
+          end
+
+          printable.text = noname_con
+
+          f.puts("The speaker is #{printable.speaker} and he says #{printable.text}\n \n")
+        end 
+
+        page += 1
+      end until browser.text.include? "Error"
+    end
+
+    f.close
+  end
+end

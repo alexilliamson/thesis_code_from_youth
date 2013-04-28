@@ -6,7 +6,7 @@ gem 'rails', '3.2.11'
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
 
 gem 'pg'
-
+gem 'ruby-prof'
 
 # Gems used only for assets and not required
 # in production environments by default.
@@ -22,7 +22,9 @@ end
 
 gem 'jquery-rails'
 gem 'watir'
-
+gem 'pry'
+gem 'stemmify'
+gem 'statsample'
 # To use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'
 
