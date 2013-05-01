@@ -1,5 +1,6 @@
 class Phrase < ActiveRecord::Base
-  attr_accessible :text, :year, :chi2, :passage_id
-  belongs_to :passage
+  attr_accessible :chi2, :stem, :year
+  has_many :passages, :through => :uses
+  has_many :uses
   has_one :result
 end
