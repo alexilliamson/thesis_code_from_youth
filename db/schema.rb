@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130429073153) do
+ActiveRecord::Schema.define(:version => 20130511042339) do
 
   create_table "passages", :force => true do |t|
     t.text     "text"
@@ -26,12 +26,12 @@ ActiveRecord::Schema.define(:version => 20130429073153) do
   create_table "phrases", :force => true do |t|
     t.string   "stem"
     t.float    "chi2"
-    t.integer  "year"
     t.datetime "created_at", :null => false
     t.datetime "updated_at", :null => false
+    t.float    "chi2b"
   end
 
-  add_index "phrases", ["stem", "year"], :name => "index_phrases_on_stem_and_year"
+  add_index "phrases", ["stem"], :name => "index_phrases_on_stem"
 
   create_table "results", :force => true do |t|
     t.integer  "phrase_id"
@@ -66,8 +66,5 @@ ActiveRecord::Schema.define(:version => 20130429073153) do
     t.datetime "created_at", :null => false
     t.datetime "updated_at", :null => false
   end
-
-  add_index "uses", ["passage_id"], :name => "index_uses_on_passage_id"
-  add_index "uses", ["phrase_id"], :name => "index_uses_on_phrase_id"
 
 end
