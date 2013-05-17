@@ -2,13 +2,15 @@ require 'rubygems'
 require 'watir-webdriver'
 require 'pry'
 
+#ADDindextermsfrompublishercriteria
+
 
 task :search => :environment do
+	client = Selenium::WebDriver::Remote::Http::Default.new
+	client.timeout = 180 # seconds – default is 60
 
-	links = []
-	words = ["\"gun\"","\"people\""]
-	browser = Watir::Browser.new
-	browser.goto "http://infoweb.newsbank.com.turing.library.northwestern.edu/iw-search/we/InfoWeb?p_field_base-0=&p_text_base-0=&p_params_base-0=&p_bool_base-1=and&p_field_base-1=YMD_date&p_text_base-1=Jan+1994+-+Dec+1994&p_params_base-1=&p_bool_base-2=and&p_field_base-2=YMD_date&p_text_base-2=&p_params_base-2=&p_sort=_rank_%3AD&p_product=AWNB&p_theme=aggregated5&p_action=search&d_loc=world&d_fieldcount=3&f_lastaction=explore&f_dateparams=B%2CE&f_submit_loc=loc&d_place=&d_selSrc=&d_selSrc=TTTB&d_selSrc=CCCB&d_selSrc=BGNB&d_selSrc=VNRB&d_selSrc=PNPB&d_selSrc=SBTS&d_selSrc=BSHB&d_selSrc=AGCB&d_selSrc=DHGB&d_selSrc=ADGL&d_selSrc=ABMA&d_selSrc=DCDT&d_selSrc=WSNB&d_selSrc=VCBB&d_selSrc=HNN9&d_selSrc=SMRB&d_selSrc=SMRI&d_selSrc=MTGB"
+	browser = Watir::Browser.new :firefox, :http_client => client
+	browser.goto "http://infoweb.newsbank.com.turing.library.northwestern.edu/iw-search/we/InfoWeb?p_product=AWNB&p_action=explore&p_theme=aggregated5&p_nbid=S55L4CLGMTM2ODU1MDIyNy40NDI2NTk6MToxNToxMjkuMTA1LjIxNS4xNDY&p_clear_search=yes&d_refprod=NEWSARCHIVES&f_clearContext=yes"
 	browser.text_field(:name => 'IDToken1').set "abw724"
 	browser.text_field(:name => 'IDToken2').set "@4k5k6k7"
 	browser.button(:name => 'Login.Submit').click
@@ -19,40 +21,51 @@ task :search => :environment do
 	browser.button(:text => 'Source List').click
 	url = browser.url
 
-	year = 1994
-	browser.table.rows.each {|row| 
-		puts(row[2].text[6..9])
-		puts(row[2].text[17..20].to_i)
-		puts(row[2].text[17..20])
+	
+	stems1994 = Phrase.where('chi2 > 0').order('chi2 DESC').limit(50).offset(660).pluck(:id)
+	stems2012 = Phrase.where('chi2 > 0').order('chi2b DESC').limit(50).offset(287).pluck(:id)
+	(30..3232).each {|n|
+		row = browser.table[n]	
 
-		if row[2].text[6..9].to_i <= year and (row[2].text[17..20].to_i >= year or row[2].text[17..20] == 't')
-			links << row[1].link.href
+		if row[2].text[6..9].to_i <= 1994 and  row[2].text[17..20] == 't'
+			year = 1994
+			link = row[1].link.href
+			@paper = Paper.create(:name => row[1].text, :year => year, :state => row[3].text[0..1])
+			stems1994.each{|stem|
+				browser.goto link
+				word = Use.where(:phrase_id => stem).pluck(:text).uniq.first
+				search =  word.split[0] + " " +"ADJ2" + " " + word.split[1] + " " +"ADJ2" + " " + word.split[2]
+				browser.text_field(:name => 'p_text_base-0').set search
+				browser.text_field(:id => 'searchText-2-dateInput').set "Jan #{year} - Dec #{year}"
+				browser.button(:text=> 'Search').click	
+				if browser.div(:id=> 'navBreadcrumb').exists? 
+					count = browser.div(:id=> 'navBreadcrumb').text.gsub!(/[^0-9]/,'').to_i	
+					PaperUse.create(:phrase_id => stem, :paper_id => @paper.id, :frequency => count)
+				else
+					PaperUse.create(:phrase_id => stem, :paper_id => @paper.id, :frequency => 0)
+				end
+			}
+
+			year = 2012
+			@paper = Paper.create(:name => @paper.name, :year => year, :state => @paper.state)
+			stems2012.each{|stem|
+				browser.goto link
+				word = Use.where(:phrase_id => stem).pluck(:text).uniq.first
+				search =  word.split[0] + " " +"ADJ2" + " " + word.split[1] + " " +"ADJ2" + " " + word.split[2]
+				browser.text_field(:name => 'p_text_base-0').set search
+				browser.text_field(:id => 'searchText-2-dateInput').set "Jan #{year} - Dec #{year}"
+				browser.button(:text=> 'Search').click	
+				if browser.div(:id=> 'navBreadcrumb').exists? 
+					count = browser.div(:id=> 'navBreadcrumb').text.gsub!(/[^0-9]/,'').to_i	
+					PaperUse.create(:phrase_id => stem, :paper_id => @paper.id, :frequency => count)
+				else
+					PaperUse.create(:phrase_id => stem, :paper_id => @paper.id, :frequency => 0)
+				end
+			}
+			browser.goto url
 		end
 	}
-	puts(links)
-
-	links.each {|link|
-
-		browser.goto link
-		date = browser.div(:class => "info-date").text
-		puts(date)
-		search = ""
-		words.each{|word|
-		search = search + "\"" + word + "\"" + "or"
-		}
-		search.gsub!(/or$/, '')
-		browser.text_field(:name => 'p_text_base-0').set search
-		browser.text_field(:id => 'searchText-2-dateInput').set "Jan #{year} - Dec #{year}"
-		browser.button(:text=> 'f_submit_search').click
-		
-
-		#count function goes here
 
 
-	
-
-
-	}
-	# browser.close
   
 end

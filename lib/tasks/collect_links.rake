@@ -45,9 +45,10 @@ task :collect_links => :environment do
     }
   }
   }
+
   newtext = file.gets(sep = nil).gsub(/\n.*FrontMatter\.htm/,'')
   file.close
-  file = File.new("link3.txt","w")
+  file = File.new("link1994.txt","w")
   file = file << newtext
   file.close
 end

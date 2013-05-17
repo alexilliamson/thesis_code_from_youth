@@ -3,25 +3,124 @@ require 'stemmify'
 require 'pry'
 
 task :parse => :environment do
-  $stopwords = ["pro tempore", "use later in the day", "completes business", "business today", "resume","legislative","objection", "iask", "senate", "senator", "senators", "gentleman","recess", "representative", "session", "committee" , "unanimous", "consent", "presiding", "object", "iwithdrawreserve", "tempore", "clerk", "presiding", "meetsessione", "revisextende", "proceed", "withdraw","chair","committee" ,"i", "unanimous consent","presiding Officer","rollcall", "yield","mr", "united", "states", "congressional", "congress", "a", "dear", "speaker", "about", "above", "above", "across", "after", "afterwards", "again", "against", "all", "almost", "alone", "along", "already", "also","although","always","am","among", "amongst", "amoungst", "amount",  "an", "and", "another", "any","anyhow","anyone","anything","anyway", "anywhere", "are", "around", "as",  "at", "back","be","became", "because","become","becomes", "becoming", "been", "before", "beforehand", "behind", "being", "below", "beside", "besides", "between", "beyond", "bill", "both", "bottom","but", "by", "call", "can", "cannot", "cant", "co", "con", "could", "couldnt", "cry", "de", "describe", "detail", "do", "done", "down", "due", "during", "each", "eg", "eight", "either", "eleven","else", "elsewhere", "empty", "enough", "etc", "even", "ever", "every", "everyone", "everything", "everywhere", "except", "few", "fifteen", "fify", "fill", "find", "fire", "first", "five", "for", "former", "formerly", "forty", "found", "four", "from", "front", "full", "further", "get", "give", "go", "had", "has", "hasnt", "have", "he", "hence", "her", "here", "hereafter", "hereby", "herein", "hereupon", "hers", "herself", "him", "himself", "his", "how", "however", "hundred", "ie", "if", "in", "inc", "indeed", "interest", "into", "is", "it", "its", "itself", "keep", "last", "latter", "latterly", "least", "less", "ltd", "made", "many", "may", "me", "meanwhile", "might", "mill", "mine", "more", "moreover", "most", "mostly", "move", "much", "must", "my", "myself", "name", "namely", "neither", "never", "nevertheless", "next", "nine", "no", "nobody", "none", "noone", "nor", "not", "nothing", "now", "nowhere", "of", "off", "often", "on", "once", "one", "only", "onto", "or", "other", "others", "otherwise", "our", "ours", "ourselves", "out", "over", "own","part", "per", "perhaps", "please", "put", "rather", "re", "same", "see", "seem", "seemed", "seeming", "seems", "serious", "several", "she", "should", "show", "side", "since", "sincere", "six", "sixty", "so", "some", "somehow", "someone", "something", "sometime", "sometimes", "somewhere", "still", "such", "system", "take", "ten", "than", "that", "the", "their", "them", "themselves", "then", "thence", "there", "thereafter", "thereby", "therefore", "therein", "thereupon", "these", "they", "thickv", "thin", "third", "this", "those", "though", "three", "through", "throughout", "thru", "thus", "to", "together", "too", "top", "toward", "towards", "twelve", "twenty", "two", "un", "under", "until", "up", "upon", "us", "very", "via", "was", "we", "well", "were", "what", "whatever", "when", "whence", "whenever", "where", "whereafter", "whereas", "whereby", "wherein", "whereupon", "wherever", "whether", "which", "while", "whither", "who", "whoever", "whole", "whom", "whose", "why", "will", "with", "within", "without", "would", "yet", "you", "your", "yours", "yourself", "yourselves", "the"]
+
+  $stopwords = ["unanimous consent","extend","member","revise", "members" , "pro tempore", "use later in the day","mr. president" "completes business", "business today", "resume","legislative","objection", "i ask", "senate", "senator", "senators", "gentleman","recess", "representative", "session", "committee" , "unanimous", "consent", "presiding", "object", "tempore", "clerk", "presiding", "meetsessione", "proceed", "withdraw","chair","committee" ,"i", "unanimous consent","presiding Officer","rollcall", "yield","mr", "united", "states", "congressional", "congress", "the",
+"be",
+"to",
+"of",
+"and",
+"a",
+"in",
+"that",
+"have",
+"i",
+"it",
+"for",
+"not",
+"on",
+"with",
+"he",
+"as",
+"you",
+"do",
+"at",
+"this",
+"but",
+"his",
+"by",
+"from",
+"they",
+"we",
+"say",
+"her",
+"she",
+"or",
+"an",
+"will",
+"my",
+"one",
+"all",
+"would",
+"there",
+"their",
+"what",
+"so",
+"up",
+"out",
+"if",
+"about",
+"who",
+"get",
+"which",
+"go",
+"me",
+"when",
+"make",
+"can",
+"like",
+"time",
+"no",
+"just",
+"him",
+"know",
+"take",
+"people",
+"into",
+"year",
+"your",
+"good",
+"some",
+"could",
+"them",
+"see",
+"other",
+"than",
+"then",
+"now",
+"look",
+"only"]
+  $killwords = ["following the prayer","journal of proceedings"]
         puts(Time::now)
-        Passage.find_each { |passage|
-          words = []
-          if passage.id % 100 == 0
-            puts(passage.id)
+        Page.includes(:person).find_each(:start => 76715) { |page|
+          if page.id % 100 == 0
+            puts(page.id)
           end
-          parse = passage.text.tr('^A-Za-z ', '').downcase
-          $stopwords.each {|x| parse.gsub!(" #{x} ", " ")}
-          parse = parse.split
-          (0..(parse.length-3)).each {|b| 
-            words = words << (parse[b] + ' ' + parse[b+1] + ' ' + parse[b+2])
+          kill = false
+          text = page.text.downcase
+          year = page.person.year
+          branch = page.person.branch
+
+          $killwords.each {|w|
+            if text.include? (w)
+              kill = true
+              puts("AHAHAHA #{w}")
+              puts(text)
+              break
+            end
           } 
-          words = words.uniq
-          words.each {|b| 
-            Use.create(:text => b, :passage_id => passage.id)
-          } 
+
+          if kill == false
+            words = []
+            parse = text
+            parse.gsub!(/[^a-z ]/, ' ')
+            parse.gsub!(/ . /, ' ')
+            $stopwords.each {|x| parse.gsub!(" #{x} ", " ")}
+            parse = parse.split
+            (0..(parse.length-2)).each {|b| 
+              words = parse[b] + ' ' + parse[b+1]
+              stem = parse[b].stem + ' ' + parse[b+1].stem
+              @word = Word.where(:stem => stem, :year => year, :branch => branch).first_or_create(:text => words)
+              page.words << @word
+            }
+            end 
+
+          # if kill == true
+          #   page.destroy
+          # end
+
         }
       puts(Time::now)
+
     
 end
 

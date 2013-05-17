@@ -11,7 +11,36 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130511042339) do
+ActiveRecord::Schema.define(:version => 20130517081936) do
+
+  create_table "pages", :force => true do |t|
+    t.integer  "person_id"
+    t.text     "text"
+    t.string   "title"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
+  end
+
+  create_table "pages_words", :id => false, :force => true do |t|
+    t.integer "page_id"
+    t.integer "word_id"
+  end
+
+  create_table "paper_uses", :force => true do |t|
+    t.integer  "paper_id"
+    t.integer  "phrase_id"
+    t.integer  "frequency"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
+  end
+
+  create_table "papers", :force => true do |t|
+    t.string   "name"
+    t.integer  "year"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
+    t.string   "state"
+  end
 
   create_table "passages", :force => true do |t|
     t.text     "text"
@@ -23,26 +52,32 @@ ActiveRecord::Schema.define(:version => 20130511042339) do
 
   add_index "passages", ["speaker_id"], :name => "index_passages_on_speaker_id"
 
+  create_table "people", :force => true do |t|
+    t.string   "name"
+    t.string   "branch",     :limit => nil
+    t.string   "party",      :limit => nil
+    t.float    "score1"
+    t.float    "score2"
+    t.datetime "created_at",                :null => false
+    t.datetime "updated_at",                :null => false
+    t.integer  "year"
+  end
+
+  add_index "people", ["branch"], :name => "index_people_on_branch"
+  add_index "people", ["name", "year", "branch"], :name => "index_people_on_name_and_year_and_branch"
+  add_index "people", ["year"], :name => "index_people_on_year"
+
   create_table "phrases", :force => true do |t|
     t.string   "stem"
     t.float    "chi2"
-    t.datetime "created_at", :null => false
-    t.datetime "updated_at", :null => false
+    t.datetime "created_at",                :null => false
+    t.datetime "updated_at",                :null => false
     t.float    "chi2b"
+    t.integer  "uses_count", :default => 0
   end
 
-  add_index "phrases", ["stem"], :name => "index_phrases_on_stem"
-
-  create_table "results", :force => true do |t|
-    t.integer  "phrase_id"
-    t.float    "intercept"
-    t.float    "slope"
-    t.datetime "created_at", :null => false
-    t.datetime "updated_at", :null => false
-    t.float    "slope2"
-  end
-
-  add_index "results", ["phrase_id"], :name => "index_results_on_phrase_id"
+  add_index "phrases", ["chi2"], :name => "index_phrases_on_chi2"
+  add_index "phrases", ["chi2b"], :name => "index_phrases_on_chi2b"
 
   create_table "speakers", :force => true do |t|
     t.string   "name"
@@ -66,5 +101,19 @@ ActiveRecord::Schema.define(:version => 20130511042339) do
     t.datetime "created_at", :null => false
     t.datetime "updated_at", :null => false
   end
+
+  add_index "uses", ["passage_id"], :name => "index_uses_on_passage_id"
+  add_index "uses", ["phrase_id"], :name => "index_uses_on_phrase_id"
+
+  create_table "words", :force => true do |t|
+    t.string   "stem"
+    t.string   "text"
+    t.datetime "created_at",                :null => false
+    t.datetime "updated_at",                :null => false
+    t.string   "branch",     :limit => nil
+    t.integer  "year"
+  end
+
+  add_index "words", ["stem", "year", "branch"], :name => "index_words_on_stem_and_year_and_branch"
 
 end
