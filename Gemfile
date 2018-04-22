@@ -25,6 +25,7 @@ gem 'watir'
 gem 'pry'
 gem 'stemmify'
 gem 'statsample'
+gem 'rb-libsvm'
 
 # To use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.0.0'

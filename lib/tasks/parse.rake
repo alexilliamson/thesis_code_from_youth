@@ -4,7 +4,7 @@ require 'pry'
 
 task :parse => :environment do
 
-  $stopwords = ["unanimous consent","extend","member","revise", "members" , "pro tempore", "use later in the day","mr. president" "completes business", "business today", "resume","legislative","objection", "i ask", "senate", "senator", "senators", "gentleman","recess", "representative", "session", "committee" , "unanimous", "consent", "presiding", "object", "tempore", "clerk", "presiding", "meetsessione", "proceed", "withdraw","chair","committee" ,"i", "unanimous consent","presiding Officer","rollcall", "yield","mr", "united", "states", "congressional", "congress", "the",
+  $stopwords = ["testimony","read","today","friends","friend","given permission","reserved","reserve","majority","minority","leader","balance", "federal debt","per capita","every man","affairs","authorize","authorized","testimony","stood","absence","order","because of illness","before","first", "man woman child","america owes","reserving the right","appears","statement","statements","morning business","action","per","read","business to come", "activity","activities", "after","budget", "insert","inserted","does","include", "follows","following","follow","followed","any","these", "reconsider","purpose","percent","hereby", "established","appropirated","appropriations","ii","iii","includes","extent","detail","details","ought","put back","forth","sincerely","dear","subdivision","technical","thank","total", "establish", "record" "enactment","enacted", "equally divided","divided","our","we","am","friend","report","submit","said","votes","vote","please","thank you","hearing","hearings","session", "sessions", "lieu","debate", "semicolon", "chairman","comments","through","table","contents","precede","preceding","later","tomorrow","tuesday", "en bloc","myself","pending","was","request","clause","reform","modified","modify","due","add","procedure","procedures","accordance","chairman","provision", "table en","quorum","absence","previously","stand","stood","record","read","order","ordered", "speaker","shall","has", "adding","vote","its", "consider","under", "section","paragraph","subsection","act","resolution","recognize","colleague","should","clinton", "such","days","day","except","period", "secretary","title","act sec","chairman","date", "ask","may","absent","remark","title","assemebled","assemble" "is","amendment","upon","statement","nays","yeas","vote","representative", "are","upon","rule","follow", "motion","suspend", "president","leadership","speaker","house","pursuant","meet","bill" "distinguished", "close of business","immediate consideration", "unanimous consent","extend","member","revise", "members" , "pro tempore", "use later in the day","mr. president" "completes business", "business today", "resume","legislative","objection", "i ask", "senate", "senator", "senators", "gentleman","recess", "representative", "session", "committee" , "unanimous", "consent", "presiding", "object", "tempore", "clerk", "presiding", "meet session", "proceed", "withdraw","chair","committee" ,"i", "unanimous consent","presiding Officer","rollcall", "yield","mr", "united", "states", "congressional", "congress", "the","meet during", "we", "house","yet","reject","administration",
 "be",
 "to",
 "of",
@@ -79,17 +79,21 @@ task :parse => :environment do
 "now",
 "look",
 "only"]
-  $killwords = ["following the prayer","journal of proceedings"]
-        puts(Time::now)
-        Page.includes(:person).find_each(:start => 76715) { |page|
-          if page.id % 100 == 0
-            puts(page.id)
-          end
-          kill = false
-          text = page.text.downcase
-          year = page.person.year
-          branch = page.person.branch
 
+  $killwords = ["following the prayer","journal of proceedings","house adjourns today", "bono mack","desjarles","donnelly","al green","gene green","jackson lee","mcmorris rogers","gary miller","george miller","linda sanchez","loretta sanchez","austin scott","david scott"]
+        puts(Time::now)
+        counter = 0
+
+        Page2.includes(:person2).find_each  { |page|
+          counter += 1
+          if counter % 100 == 0
+            puts(page.id)
+            puts(Time::now)
+          end
+
+          kill = false
+
+          text = page.text.downcase
           $killwords.each {|w|
             if text.include? (w)
               kill = true
@@ -98,8 +102,10 @@ task :parse => :environment do
               break
             end
           } 
-
+          @page = page
           if kill == false
+            
+            branch = page.person2.branch
             words = []
             parse = text
             parse.gsub!(/[^a-z ]/, ' ')
@@ -107,16 +113,14 @@ task :parse => :environment do
             $stopwords.each {|x| parse.gsub!(" #{x} ", " ")}
             parse = parse.split
             (0..(parse.length-2)).each {|b| 
-              words = parse[b] + ' ' + parse[b+1]
               stem = parse[b].stem + ' ' + parse[b+1].stem
-              @word = Word.where(:stem => stem, :year => year, :branch => branch).first_or_create(:text => words)
-              page.words << @word
+              @page.word2s << Word2.where(:stem => stem, :branch => branch).first_or_create(:text => (parse[b] + ' ' + parse[b+1]))
             }
             end 
 
-          # if kill == true
-          #   page.destroy
-          # end
+          if kill == true
+            page.destroy
+          end
 
         }
       puts(Time::now)

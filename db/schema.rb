@@ -11,7 +11,25 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130517081936) do
+ActiveRecord::Schema.define(:version => 20130602195309) do
+
+  create_table "page2s", :force => true do |t|
+    t.text     "text"
+    t.string   "title"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
+    t.integer  "person2_id"
+  end
+
+  add_index "page2s", ["person2_id"], :name => "index_page2s_on_person2_id"
+
+  create_table "page2s_word2s", :id => false, :force => true do |t|
+    t.integer "page2_id"
+    t.integer "word2_id"
+  end
+
+  add_index "page2s_word2s", ["page2_id"], :name => "index_page2s_word2s_on_page2_id"
+  add_index "page2s_word2s", ["word2_id", "page2_id"], :name => "index_page2s_word2s_on_word2_id_and_page2_id"
 
   create_table "pages", :force => true do |t|
     t.integer  "person_id"
@@ -21,17 +39,38 @@ ActiveRecord::Schema.define(:version => 20130517081936) do
     t.datetime "updated_at", :null => false
   end
 
+  add_index "pages", ["person_id"], :name => "index_pages_on_person_id"
+
   create_table "pages_words", :id => false, :force => true do |t|
     t.integer "page_id"
     t.integer "word_id"
   end
 
-  create_table "paper_uses", :force => true do |t|
-    t.integer  "paper_id"
-    t.integer  "phrase_id"
+  add_index "pages_words", ["page_id"], :name => "index_pages_words_on_page_id"
+  add_index "pages_words", ["word_id", "page_id"], :name => "index_pages_words_on_word_id_and_page_id"
+
+  create_table "paper2s", :force => true do |t|
+    t.string   "name"
+    t.integer  "year"
+    t.string   "state"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
+  end
+
+  create_table "paper_use2s", :force => true do |t|
+    t.string   "stem"
+    t.integer  "paper2_id"
     t.integer  "frequency"
     t.datetime "created_at", :null => false
     t.datetime "updated_at", :null => false
+  end
+
+  create_table "paper_uses", :force => true do |t|
+    t.integer  "paper_id"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
+    t.string   "stem"
+    t.integer  "frequency"
   end
 
   create_table "papers", :force => true do |t|
@@ -42,30 +81,35 @@ ActiveRecord::Schema.define(:version => 20130517081936) do
     t.string   "state"
   end
 
-  create_table "passages", :force => true do |t|
-    t.text     "text"
-    t.integer  "speaker_id"
-    t.datetime "created_at", :null => false
-    t.datetime "updated_at", :null => false
-    t.string   "title"
-  end
-
-  add_index "passages", ["speaker_id"], :name => "index_passages_on_speaker_id"
-
   create_table "people", :force => true do |t|
     t.string   "name"
-    t.string   "branch",     :limit => nil
-    t.string   "party",      :limit => nil
+    t.string   "branch"
+    t.string   "party"
     t.float    "score1"
     t.float    "score2"
-    t.datetime "created_at",                :null => false
-    t.datetime "updated_at",                :null => false
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
     t.integer  "year"
   end
 
   add_index "people", ["branch"], :name => "index_people_on_branch"
   add_index "people", ["name", "year", "branch"], :name => "index_people_on_name_and_year_and_branch"
+  add_index "people", ["score1"], :name => "index_people_on_score1"
   add_index "people", ["year"], :name => "index_people_on_year"
+
+  create_table "person2s", :force => true do |t|
+    t.string   "name"
+    t.string   "branch"
+    t.string   "party"
+    t.float    "score1"
+    t.float    "score2"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
+    t.integer  "year"
+  end
+
+  add_index "person2s", ["branch"], :name => "index_person2s_on_branch"
+  add_index "person2s", ["name", "branch"], :name => "index_person2s_on_name_and_branch"
 
   create_table "phrases", :force => true do |t|
     t.string   "stem"
@@ -79,41 +123,30 @@ ActiveRecord::Schema.define(:version => 20130517081936) do
   add_index "phrases", ["chi2"], :name => "index_phrases_on_chi2"
   add_index "phrases", ["chi2b"], :name => "index_phrases_on_chi2b"
 
-  create_table "speakers", :force => true do |t|
-    t.string   "name"
-    t.datetime "created_at", :null => false
-    t.datetime "updated_at", :null => false
-    t.string   "party"
-    t.integer  "year"
-    t.float    "score"
-    t.string   "branch"
-    t.float    "score2"
-  end
-
-  add_index "speakers", ["name", "year", "branch"], :name => "index_speakers_on_name_and_year_and_branch"
-  add_index "speakers", ["party"], :name => "index_speakers_on_party"
-  add_index "speakers", ["year"], :name => "index_speakers_on_year"
-
-  create_table "uses", :force => true do |t|
+  create_table "word2s", :force => true do |t|
+    t.string   "stem"
     t.string   "text"
-    t.integer  "passage_id"
-    t.integer  "phrase_id"
+    t.string   "branch"
     t.datetime "created_at", :null => false
     t.datetime "updated_at", :null => false
+    t.float    "chi2"
+    t.float    "chib"
   end
 
-  add_index "uses", ["passage_id"], :name => "index_uses_on_passage_id"
-  add_index "uses", ["phrase_id"], :name => "index_uses_on_phrase_id"
+  add_index "word2s", ["branch"], :name => "index_word2s_on_branch"
+  add_index "word2s", ["stem", "branch"], :name => "index_word2s_on_stem_and_branch"
 
   create_table "words", :force => true do |t|
     t.string   "stem"
     t.string   "text"
-    t.datetime "created_at",                :null => false
-    t.datetime "updated_at",                :null => false
-    t.string   "branch",     :limit => nil
-    t.integer  "year"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
+    t.string   "branch"
+    t.float    "chi2"
+    t.float    "chib"
   end
 
-  add_index "words", ["stem", "year", "branch"], :name => "index_words_on_stem_and_year_and_branch"
+  add_index "words", ["branch"], :name => "index_words_on_branch"
+  add_index "words", ["stem", "branch"], :name => "index_words_on_stem_and_branch"
 
 end

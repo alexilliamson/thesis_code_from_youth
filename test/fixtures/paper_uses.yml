@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  paper_id: 1
+  phrase_id: 1
+  frequency: 1
+
+two:
+  paper_id: 1
+  phrase_id: 1
+  frequency: 1

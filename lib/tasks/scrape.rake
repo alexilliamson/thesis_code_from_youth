@@ -8,24 +8,30 @@ task :scrape => :environment do
   client.timeout = 180 # seconds – default is 60
 
   browser = Watir::Browser.new :firefox, :http_client => client
-  File.new("link1994.txt","r+").each_line {|page|
+  File.new("links1994.txt","r+").each_line {|page|
       browser.goto page
       @year = page[34..37]
+
       case page[72]
       when 'S'
         @branch= 'S'
       when 'H'
         @branch = 'H'
       else
-        @branch = 'X'
       end
+
       text = browser.text
-      text.gsub!(/Mrs. /, "Mr. ")
-      text.gsub!(/Mr. DE LUGO/, "Mr. DELUGO")
+      text.gsub!(/Ms\. /, "Mr. ")
+      text.gsub!(/Mrs\. /, "Mr. ")
+      text.gsub!(/Mr\. PETE GEREN/, "Mr. GEREN")
+      text.gsub!(/Mr\. [A-Z]+ [A-Z]+/) {|a| "Mr. " + a.split[1] + a.split[2]}
+      text.gsub!(/Mr\. DE LUGO/, "Mr. DELUGO")
       text.gsub!(/GARZA/, "Mr. DELAGARZA")
       text.gsub!(/-/, "")
       text.gsub!(/The PRESIDING OFFICER/, "Mr. PRESIDINGOFFICER")
       text.gsub!(/The SPEAKER PRO TEMPORE/, "Mr. SPEAKERPROTEMPORE")
+      text.gsub!(/The SPEAKER pro tempore/, "Mr. SPEAKERPROTEMPORE")
+      text.gsub!(/The SPEAKER pro tempore \(.*\)/, "Mr. SPEAKERPROTEMPORE")
       text.gsub!(/The PRESIDENT PRO TEMPORE/, "Mr. PRESPROTEMPORE")
       text.gsub!(/The CLERK/, "Mr. CLERK")
       text.gsub!(/The PRESIDENT/, "Mr. PRESIDENT")
@@ -33,19 +39,42 @@ task :scrape => :environment do
       text.gsub!(/The VICE PRESIDENT/, "Mr. VPRESIDENT")
       text.gsub!(/The SPEAKER/, "Mr. SPEAKER")
       text.gsub!(/The CHAIRMAN/, "Mr. CHAIRMAN")
+      text.gsub!(/The CHAIRMAN/, "Mr. CHAIRMAN")
+      text.gsub!(/PUBLIC BILLS AND RESOLUTIONS.*/m,'')
+      text.gsub!(/THE JOURNAL.*/m,'')
+      text.gsub!(/PLEDGE OF ALLEGIANCE.*____/m,'') 
+     text.gsub!(/\[Roll No.*?So /m,'')
+      text.gsub!(/\n   .* \n/,"\n")
+      text.gsub!(/\n   .* \n/,"\n")
+      text.gsub!(/\n   .* \n/,"\n")
+      text.gsub!(/\n   .* \n/,"\n")
+      text.gsub!(/\n   .* \n/,"\n")
+      text.gsub!(/\n   .* \n/,"\n")
+      text.gsub!(/\n   .* \n/,"\n")
+      text.gsub!(/Mr\. .*\(for h/,'')
+      text.gsub!(/Mr. .* offered amendment/,'')
+      text.gsub!(/\(Mr\. .* asked/,'')
+      text.gsub!(/\(during the reading\)\./,'.')
+      text.gsub!('addressed the chair.','.')
 
 
-      names = text.scan(/([M][r]. [A-Z][^\.][A-Z]{1,}*\.|[M][r]. [A-Z].[A-Z]{1,} of [A-Z][a-z]*\.)/)
-      sections = text.split(/[MT][rh]. [A-Z].[A-Z]{1,}*\./)
+      names = text.scan(/(Mr\. [A-Z][^\.][A-Z]{1,}*\.|Mr\. [A-Z].[A-Z]{1,} of [A-Z][a-z]*[\.\: ][A-Za \n])/)
+      sections = text.split(/Mr\. [A-Z][^\.][A-Z]{1,}*[\. ][o ][^n]/)
       sections.slice!(0)
       names.flatten!
-      sections.each_index {|i|
-        
-          @name = (names[i].gsub(/Mr. /, '')).upcase.gsub(/[^a-zA-Z ]/,'')
-          @person = Person.find_or_create_by_name_and_year_and_branch(:name => @name, :year => 1994, :branch => @branch)
-          @page = @person.pages.create(:title => page , :text => sections[i])
+  
 
-      }
+      if sections.size>0 and sections.size == names.size
+        sections.each_index {|i|
+          
+            @name = (names[i].gsub(/Mr. /, '')).upcase.gsub(/[^a-zA-Z ]/,'')
+            @person = Person.find_or_create_by_name_and_branch(:name => @name, :year=> 2012, :branch => @branch)
+            @page = @person.pages.create(:title => page , :text => sections[i])
+
+        }
+      elsif sections.size != names.size
+        puts("FUCKKK",page)
+      end
     }
     browser.close
 

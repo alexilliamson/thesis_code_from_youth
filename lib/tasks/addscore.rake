@@ -4,60 +4,92 @@ require 'pry'
 
 task :addscore => :environment do
   counter = 0
-  puts(Time::now)
-#   year = 1994
+  branch = 'H'
+
+    @rids = Person2.righthb.pluck(:id)
+    @lids = Person2.lefthb.pluck(:id)
+    @rtotal = Page2.where(:person2_id => @rids).joins(:word2s).count(:group => 'page2s.id,word2s.id').length.to_f
+    @ltotal =Page2.where(:person2_id => @lids).joins(:word2s).count(:group => 'page2s.id,word2s.id').length.to_f
+    Total = @rtotal + @ltotal 
+    rshare = @rtotal/Total
+    lshare = @ltotal/Total
+      
+    puts(@rtotal)
+    puts(@ltotal)
 
 
-#   @rtotal = Phrase.joins(:speakers).where(:speakers => {:party =>'R', :year => year} ).count.to_f
-#   @dtotal = Phrase.joins(:speakers).where(:speakers => {:party =>'D', :year => year} ).count.to_f
-#   puts(@rtotal)
-#   puts(@dtotal)
-#   puts(Time::now)
+    Word2.where(:branch => branch).find_each {|word|
+      @ofl = word.page2s.where(:person2_id => @lids).pluck(:id).count.to_f
+      @ofr = word.page2s.where(:person2_id => @rids).pluck(:id).count.to_f
+      sum = @ofl +  @ofr
+      exl = sum * lshare
+      exr = sum * rshare
+      
+      if exl > 0 
 
-#   Phrase.find_each {|phrase|
-#     @fr = (phrase.speakers.where(:party => 'R', :year => year)).count.to_f
-#     @fd = (phrase.speakers.where(:party => 'D', :year => year)).count.to_f
-#     @nfr = @rtotal - @fr
-#     @nfd = @dtotal - @fd
-#     @chi2 = ((@fr*@nfd - @fd*@nfr)**2)/((@fr+@fd)*(@fr+@nfr)*(@fd+@nfd)*(@nfr+@nfd)).to_f
-#     if @chi2 > 0.0
-#       phrase.assign_attributes(:chi2 => @chi2)
-#       phrase.save
-#       counter += 1
-#     end
-#     if counter % 10000 == 0
-#       puts (counter)
-#     end
-
-# }
-
-    counter = 0
-  puts(Time::now)
-  year = 2012
+        @chi2 = ((@ofl - exl)**2)/exl + ((@ofr - exr)**2)/exr
 
 
-  @rtotal = Phrase.joins(:speakers).where(:speakers => {:party =>'R', :year => year} ).count.to_f
-  @dtotal = Phrase.joins(:speakers).where(:speakers => {:party =>'D', :year => year} ).count.to_f
-  puts(@rtotal)
-  puts(@dtotal)
-  puts(Time::now)
+        word.assign_attributes(:chib => @chi2)
+        word.save
+        counter += 1
 
-  Phrase.find_each {|phrase|
-    @fr = (phrase.speakers.where(:party => 'R', :year => year)).count.to_f
-    @fd = (phrase.speakers.where(:party => 'D', :year => year)).count.to_f
-    @nfr = @rtotal - @fr
-    @nfd = @dtotal - @fd
-    @chi2b = ((@fr*@nfd - @fd*@nfr)**2)/((@fr+@fd)*(@fr+@nfr)*(@fd+@nfd)*(@nfr+@nfd)).to_f
-    if @chi2b > 0.0
-      phrase.assign_attributes(:chi2b => @chi2b)
-      phrase.save
-      counter += 1
-    end
-    if counter % 10000 == 0
-      puts (counter)
-    end
 
-}
+        if counter % 10000 == 0
+          puts(Time::now)
+          puts (counter)
+        end
+      end
+
+  }
+
+  branch = 'S'
+
+    @rids = Person2.rightsb.pluck(:id)
+    @lids = Person2.leftsb.pluck(:id)
+    @rtotal =Page2.where(:person2_id => @rids).joins(:word2s).count(:group => 'page2s.id,word2s.id').length.to_f
+    @ltotal =Page2.where(:person2_id => @lids).joins(:word2s).count(:group => 'page2s.id,word2s.id').length.to_f
+    Total = @rtotal + @ltotal 
+    rshare = @rtotal/Total
+    lshare = @ltotal/Total
+      
+    puts(@rtotal)
+    puts(@ltotal)
+
+
+    Word2.where(:branch => branch).find_each {|word|
+      @ofl = word.page2s.where(:person2_id => @lids).pluck(:id).count.to_f
+      @ofr = word.page2s.where(:person2_id => @rids).pluck(:id).count.to_f
+      sum = @ofl +  @ofr
+      exl = sum * lshare
+      exr = sum * rshare
+      
+      if exl > 0 
+
+        @chi2 = ((@ofl - exl)**2)/exl + ((@ofr - exr)**2)/exr
+
+
+        word.assign_attributes(:chib => @chi2)
+        word.save
+        counter += 1
+
+
+        if counter % 10000 == 0
+          puts(Time::now)
+          puts (counter)
+        end
+      end
+
+  }
+
+
+
+
+  
+
+
+
+
   puts(Time::now)
 
 

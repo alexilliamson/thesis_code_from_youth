@@ -63,6 +63,7 @@ task :info => :environment do
     update.flatten!
 
 
+
     if update.size == 6
       puts(a.id)
       puts("#{update}")
@@ -74,12 +75,9 @@ task :info => :environment do
 
   file.close
 
-  #  Speaker.where(:party => nil).find_each{|s| 
-  #   puts(s.name)
-  #   puts(s.passages.count)
-  #   s.destroy
-  # }
 
 
 
 end
+
+

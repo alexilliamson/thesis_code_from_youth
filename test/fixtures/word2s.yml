@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  stem: MyString
+  text: MyString
+  branch: MyString
+
+two:
+  stem: MyString
+  text: MyString
+  branch: MyString
